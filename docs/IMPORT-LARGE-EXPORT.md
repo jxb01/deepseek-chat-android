@@ -45,3 +45,16 @@ Result: 4,499 conversations / 637 MB in ~45 s on an Android 14 emulator.
 Attachments, message branches, thinking blocks and citations are dropped.
 If the maintainers want lossless import, the merge bridge can be extended to accept
 a file-reader abstraction (native stream) instead of a `File`.
+
+## Update: why the first native attempt crashed
+
+The first version also carried image attachments: it read each `*_files/` entry,
+base64-encoded it and pushed it through `evaluateJavascript`. On a 637 MB export that
+allocated multi-megabyte strings inside a 192 MB app heap and the process died with
+`OutOfMemoryError: Failed to allocate a 10175544 byte allocation` in
+`Base64.encodeToString`. It also accumulated every parsed session in a list before
+writing, which made the peak worse.
+
+Current behaviour: text-only, streamed in batches of 50 sessions (no full-list
+accumulation), and a hidden long-press trigger in the top strip. Full export:
+4,499 conversations in under a minute on a clean app data directory.

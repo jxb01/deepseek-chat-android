@@ -24,7 +24,8 @@ several imports — each one overwrites the previous.
 - Serves the built `chat-demo` from app assets through `WebViewAssetLoader`
   (`https://appassets.androidplatform.net/assets/www/index.html`) so IndexedDB and
   storage work with a normal origin.
-- Adds a **导入ZIP / Import ZIP** button that:
+- Adds a **hidden import gesture**: long-press anywhere in the top strip of the screen
+  (no on-screen button, nothing to mis-tap). It:
   1. copies the picked ZIP to cache,
   2. parses it natively with `java.util.zip.ZipFile` (one pass, no SAF reopens),
   3. normalises every session into the app's local message model
@@ -32,6 +33,9 @@ several imports — each one overwrites the previous.
   4. writes it in batches of 50 sessions through `window.__dshMergeSessions(...)`,
      which **merges** into IndexedDB instead of replacing,
   5. shows progress and reloads the page when done.
+
+The native path imports **chat text only** — attachments are skipped, because carrying
+image blobs through a JS bridge exhausted the WebView heap on a 637 MB export.
 - Measured on an Android 14 emulator: the full 637 MB export (4,499 conversations)
   imports in about 45 seconds.
 
@@ -57,6 +61,12 @@ cd ../deepseek-chat-android
 
 Optional but recommended: apply `web-patch/mergeBridge.ts` to `chat-demo`
 (see `web-patch/README.md`) so the bridge exists in the bundle.
+
+## Wiping old data before a test
+
+If a previous import was interrupted, clear the app data first
+(`adb shell pm clear com.jg.dschat`, or Android Settings → Apps → DeepSeek → Storage →
+Clear storage), then long-press the top strip again.
 
 ## Limitations
 
