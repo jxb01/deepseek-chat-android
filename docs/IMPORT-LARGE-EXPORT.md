@@ -58,3 +58,14 @@ writing, which made the peak worse.
 Current behaviour: text-only, streamed in batches of 50 sessions (no full-list
 accumulation), and a hidden long-press trigger in the top strip. Full export:
 4,499 conversations in under a minute on a clean app data directory.
+
+## Update 2: conversations opened with only the first message
+
+The first text-only version wrote `parentId` but not `selectedChildId`.
+The local session model stores the current branch as a chain of `selectedChildId`
+pointers from the root (see `history/toLocal.ts`), so without them the UI rendered
+only the root message.
+
+Fix: after building the linear message list, set `selectedChildId` of message *i* to
+message *i+1* and leave the last one without it, plus `rootMessageId` = first id.
+Verified on a 420-message conversation: the whole history now scrolls.
